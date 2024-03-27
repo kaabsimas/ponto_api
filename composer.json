@@ -1,0 +1,18 @@
+{
+    "name": "albert/ponto_api",
+    "autoload": {
+        "psr-4": {
+            "Ponto\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Albert Melo",
+            "email": "albert.uler@brilliantmachine.com.br"
+        }
+    ],
+    "require": {
+        "symfony/framework-bundle": "^6.4",
+        "firebase/php-jwt": "^6.10"
+    }
+}
