@@ -3,11 +3,13 @@
 namespace Ponto;
 
 use Ponto\Routing\Router;
+use Ponto\Database\Connection;
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 
 class Application
 {
-    const USERNAME = 'admin';
-    const PASSWORD = 'secret';
+    const PASSWORD = 'secret66046a5832e3b';
 
     protected Router $router;
 
@@ -27,16 +29,33 @@ class Application
         if(! isset($_POST['email']) || !isset($_POST['password'])) {
             $entityBody = file_get_contents('php://input');
             $body = json_decode($entityBody, true);
+            if(\json_last_error() !== JSON_ERROR_NONE) {
+                $body = [];
+            }
         } else {
             $body = $_POST;
         }
 
-        if(isset($body['email']) && $body['email'] === self::USERNAME && isset($body['password'])) {
-            if($body['password'] !== self::PASSWORD) {
+        $pdo = (new Connection)->connect();
+
+        $prepare = $pdo->prepare("select * from user where email = :email");
+        $prepare->execute(['email' => $body['email']]);
+        $userFound = $prepare->fetch();
+
+        if(isset($userFound)) {
+            if(! password_verify($body['password'], $userFound->password)) {
                 return "Invalid password";
             }
             
-            return md5(self::PASSWORD);
+            $payload = [
+                'iat' => time(),
+                'exp' => time() + 7200,
+                'email' => $userFound->email
+            ];
+    
+            $encode = JWT::encode($payload, self::PASSWORD, 'HS256');
+
+            return json_encode($encode);
         }
         return "User not found";
     }
